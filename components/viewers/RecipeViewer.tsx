@@ -70,67 +70,69 @@ export function RecipeViewer({ recipe }: RecipeViewerProps) {
     <div className="space-y-6">
       <DocumentHeader document={recipe} />
 
-      <Card padding="md">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="text-center">
-            <div className="flex items-center justify-center gap-1 text-gray-400 mb-1">
+      {/* Quick Stats Card */}
+      <Card padding="md" gradient>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+          <div className="text-center p-3 rounded-xl bg-white/60 border border-gray-100">
+            <div className="flex items-center justify-center gap-1.5 text-gray-500 mb-2">
               <Clock className="h-4 w-4" />
-              <span className="text-xs uppercase">Prep Time</span>
+              <span className="text-xs font-medium uppercase tracking-wide">Prep Time</span>
             </div>
-            <p className="text-lg font-semibold text-gray-900">
+            <p className="text-xl font-bold text-gray-900">
               {formatDuration(recipe.prep_time_minutes)}
             </p>
           </div>
-          <div className="text-center">
-            <div className="flex items-center justify-center gap-1 text-gray-400 mb-1">
+          <div className="text-center p-3 rounded-xl bg-white/60 border border-gray-100">
+            <div className="flex items-center justify-center gap-1.5 text-gray-500 mb-2">
               <Timer className="h-4 w-4" />
-              <span className="text-xs uppercase">Cook Time</span>
+              <span className="text-xs font-medium uppercase tracking-wide">Cook Time</span>
             </div>
-            <p className="text-lg font-semibold text-gray-900">
+            <p className="text-xl font-bold text-gray-900">
               {formatDuration(recipe.cook_time_minutes)}
             </p>
           </div>
-          <div className="text-center">
-            <div className="flex items-center justify-center gap-1 text-gray-400 mb-1">
+          <div className="text-center p-3 rounded-xl bg-white/60 border border-gray-100">
+            <div className="flex items-center justify-center gap-1.5 text-gray-500 mb-2">
               <Users className="h-4 w-4" />
-              <span className="text-xs uppercase">Yield</span>
+              <span className="text-xs font-medium uppercase tracking-wide">Yield</span>
             </div>
-            <p className="text-lg font-semibold text-gray-900">
+            <p className="text-xl font-bold text-gray-900">
               {recipe.yield.amount ?? '—'} {recipe.yield.unit ?? ''}
             </p>
           </div>
-          <div className="text-center">
-            <div className="flex items-center justify-center gap-1 text-gray-400 mb-1">
-              <span className="text-xs uppercase">Portion Size</span>
+          <div className="text-center p-3 rounded-xl bg-white/60 border border-gray-100">
+            <div className="flex items-center justify-center gap-1.5 text-gray-500 mb-2">
+              <span className="text-xs font-medium uppercase tracking-wide">Portion Size</span>
             </div>
-            <p className="text-lg font-semibold text-gray-900">
+            <p className="text-xl font-bold text-gray-900">
               {recipe.portion_size ?? '—'}
             </p>
           </div>
         </div>
       </Card>
 
-      <Card padding="sm">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
+      {/* Controls Card */}
+      <Card padding="md">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
             <span className="text-sm font-medium text-gray-700">Recipe Scale</span>
             <select
               value={scale}
               onChange={(e) => setScale(Number(e.target.value))}
-              className="border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="border border-gray-200 rounded-xl px-4 py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-gray-50 hover:bg-gray-100 transition-colors"
             >
-              <option value={0.5}>0.5× (Half)</option>
-              <option value={1}>1× (Original)</option>
-              <option value={2}>2× (Double)</option>
-              <option value={5}>5× (Batch)</option>
-              <option value={10}>10× (Large Batch)</option>
+              <option value={0.5}>0.5× Half</option>
+              <option value={1}>1× Original</option>
+              <option value={2}>2× Double</option>
+              <option value={5}>5× Batch</option>
+              <option value={10}>10× Large</option>
             </select>
           </div>
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2 text-sm">
               <span className="text-gray-500">Progress:</span>
-              <span className="font-medium">
-                {completedSteps.size} of {recipe.steps.length} steps
+              <span className="font-semibold text-gray-900 tabular-nums">
+                {completedSteps.size}/{recipe.steps.length}
               </span>
             </div>
             {completedSteps.size > 0 && (
@@ -140,18 +142,18 @@ export function RecipeViewer({ recipe }: RecipeViewerProps) {
             )}
           </div>
         </div>
-        <div className="mt-3">
+        <div className="mt-4">
           <ProgressBar
             value={progress}
             max={100}
             showPercentage={false}
             color={progress === 100 ? 'green' : 'indigo'}
-            size="sm"
+            size="md"
           />
         </div>
       </Card>
 
-      <Tabs tabs={tabs} activeTab={activeTab} onChange={setActiveTab} />
+      <Tabs tabs={tabs} activeTab={activeTab} onChange={setActiveTab} variant="pills" />
 
       <div className="mt-6">
         {activeTab === 'overview' && <RecipeOverview recipe={recipe} />}
@@ -165,12 +167,15 @@ export function RecipeViewer({ recipe }: RecipeViewerProps) {
       </div>
 
       {progress === 100 && (
-        <Card className="bg-green-50 border-green-200">
-          <div className="flex items-center justify-center gap-3 py-4">
-            <CheckCircle2 className="h-8 w-8 text-green-600" />
+        <Card className="bg-gradient-to-r from-green-50 to-emerald-50 border-green-200 overflow-hidden">
+          <div className="flex items-center justify-center gap-4 py-6 relative">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,rgba(34,197,94,0.1),transparent_50%)]" />
+            <div className="p-3 bg-gradient-to-br from-green-400 to-emerald-500 rounded-2xl shadow-lg shadow-green-500/30">
+              <CheckCircle2 className="h-8 w-8 text-white" />
+            </div>
             <div>
-              <p className="text-lg font-semibold text-green-800">Recipe Complete! 🎉</p>
-              <p className="text-sm text-green-600">Great job! You have finished all the steps.</p>
+              <p className="text-xl font-bold text-green-800">Recipe Complete!</p>
+              <p className="text-sm text-green-600">Great job! All {recipe.steps.length} steps finished.</p>
             </div>
           </div>
         </Card>
@@ -281,38 +286,65 @@ function IngredientsTab({ groups, scale, toolsRequired }: { groups: Record<strin
 function MethodTab({ steps, completedSteps, onToggleStep }: { steps: RecipeStep[]; completedSteps: Set<string>; onToggleStep: (id: string) => void }) {
   return (
     <div className="space-y-4">
-      <h2 className="text-xl font-semibold text-gray-900">Step-by-Step Instructions</h2>
+      <div className="flex items-center justify-between">
+        <h2 className="text-xl font-bold text-gray-900">Step-by-Step Instructions</h2>
+        <Badge variant="outline" size="md">
+          {completedSteps.size}/{steps.length} completed
+        </Badge>
+      </div>
       {steps.map((step, index) => {
         const isComplete = completedSteps.has(step.id)
         const hasCCP = step.ccp && step.ccp.length > 0
         return (
-          <Card key={step.id} className={cn('transition-all', isComplete && 'bg-green-50 border-green-200')}>
+          <Card
+            key={step.id}
+            className={cn(
+              'transition-all duration-300',
+              isComplete
+                ? 'bg-gradient-to-r from-green-50 to-emerald-50 border-green-200 shadow-sm'
+                : 'hover:shadow-md'
+            )}
+          >
             <div className="flex gap-4">
               <div className="flex-shrink-0">
-                <button onClick={() => onToggleStep(step.id)}>
+                <button onClick={() => onToggleStep(step.id)} className="focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 rounded-full">
                   <StepIndicator step={index + 1} status={isComplete ? 'complete' : 'pending'} size="lg" />
                 </button>
               </div>
               <div className="flex-1 min-w-0">
-                {step.title && <h3 className="text-lg font-medium text-gray-900 mb-1">{step.title}</h3>}
-                <p className="text-gray-700 mb-3">{step.instruction}</p>
+                {step.title && <h3 className="text-lg font-semibold text-gray-900 mb-2">{step.title}</h3>}
+                <p className="text-gray-700 mb-3 leading-relaxed">{step.instruction}</p>
                 {step.key_points && step.key_points.length > 0 && (
-                  <div className="mb-3">
-                    <p className="text-sm font-medium text-gray-600 mb-1">Key Points:</p>
-                    <ul className="list-disc list-inside text-sm text-gray-600 space-y-1">
-                      {step.key_points.map((point, i) => (<li key={i}>{point}</li>))}
+                  <div className="mb-3 p-3 bg-gray-50 rounded-xl border border-gray-100">
+                    <p className="text-sm font-semibold text-gray-700 mb-2">Key Points:</p>
+                    <ul className="space-y-1.5">
+                      {step.key_points.map((point, i) => (
+                        <li key={i} className="text-sm text-gray-600 flex items-start gap-2">
+                          <span className="text-indigo-400 mt-1">•</span>
+                          {point}
+                        </li>
+                      ))}
                     </ul>
                   </div>
                 )}
-                {step.why && <p className="text-sm text-blue-700 bg-blue-50 px-3 py-2 rounded-md mb-3"><strong>Why:</strong> {step.why}</p>}
-                {step.timer_seconds && <Badge variant="outline" size="md" className="mb-3"><Timer className="h-3.5 w-3.5 mr-1" />{formatSeconds(step.timer_seconds)}</Badge>}
+                {step.why && (
+                  <div className="text-sm text-blue-700 bg-gradient-to-r from-blue-50 to-indigo-50 px-4 py-3 rounded-xl mb-3 border border-blue-100">
+                    <strong className="text-blue-800">Why:</strong> {step.why}
+                  </div>
+                )}
+                {step.timer_seconds && (
+                  <Badge variant="info" size="md" className="mb-3 gap-1.5">
+                    <Timer className="h-3.5 w-3.5" />
+                    {formatSeconds(step.timer_seconds)}
+                  </Badge>
+                )}
                 {hasCCP && (
                   <Alert variant="warning" title="Critical Control Point" className="mt-3">
-                    <ul className="space-y-1">
+                    <ul className="space-y-2">
                       {step.ccp!.map((ccp, i) => (
                         <li key={i} className="flex items-center gap-2">
-                          <Thermometer className="h-4 w-4" />
-                          <span>{ccp.context}: <strong>{ccp.target ?? `${ccp.value}°${ccp.unit}`}</strong>{ccp.safety_reason && <span className="text-gray-600"> ({ccp.safety_reason})</span>}</span>
+                          <Thermometer className="h-4 w-4 flex-shrink-0" />
+                          <span>{ccp.context}: <strong className="text-amber-900">{ccp.target ?? `${ccp.value}°${ccp.unit}`}</strong>{ccp.safety_reason && <span className="text-amber-700"> ({ccp.safety_reason})</span>}</span>
                         </li>
                       ))}
                     </ul>
@@ -320,7 +352,20 @@ function MethodTab({ steps, completedSteps, onToggleStep }: { steps: RecipeStep[
                 )}
               </div>
               <div className="flex-shrink-0">
-                <Button variant={isComplete ? 'secondary' : 'outline'} size="sm" onClick={() => onToggleStep(step.id)}>{isComplete ? 'Done ✓' : 'Mark Done'}</Button>
+                <Button
+                  variant={isComplete ? 'success' : 'outline'}
+                  size="sm"
+                  onClick={() => onToggleStep(step.id)}
+                >
+                  {isComplete ? (
+                    <>
+                      <CheckCircle2 className="h-4 w-4" />
+                      Done
+                    </>
+                  ) : (
+                    'Mark Done'
+                  )}
+                </Button>
               </div>
             </div>
           </Card>
