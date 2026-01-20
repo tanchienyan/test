@@ -1,5 +1,6 @@
 // types/documents.ts
-// Shared Types
+
+// ===== SHARED TYPES =====
 
 export type Frequency = 'per_order' | 'per_shift' | 'daily' | 'weekly' | 'monthly' | 'ad_hoc'
 export type TemperatureUnit = 'C' | 'F'
@@ -7,12 +8,72 @@ export type CookingMode = 'fresh' | 'defrosted' | 'frozen'
 export type Shift = 'am' | 'pm' | 'full_day' | 'overnight'
 export type ResponseType = 'checkbox' | 'number' | 'temperature' | 'text' | 'photo'
 export type GuideKind = 'ops_reference' | 'policy_hr' | 'culture' | 'training_standard'
-export type DocumentType = 'Recipe' | 'SOP' | 'Checklist' | 'Equipment' | 'Guide'
+export type DocStatus = 'draft' | 'needs_review' | 'approved' | 'published' | 'archived'
+export type CalloutType = 'info' | 'warning' | 'critical' | 'tip'
+
+export interface BaseDocument {
+  id: string
+  title: string
+  status: DocStatus
+  version: string
+  created_at: string
+  updated_at: string
+  owner_user_id: string
+  tags?: string[]
+  source_evidence: EvidenceRef[]
+  open_questions: string[]
+  confidence_score: number
+}
 
 export type EvidenceRef = {
   source_id: string
   locator: string
   note?: string
+}
+
+export type Callout = {
+  callout_type: CalloutType
+  title?: string
+  text: string | string[]
+  icon?: string
+}
+
+export type ControlPoint = {
+  metric: string
+  operator: '>=' | '<=' | '=' | 'between'
+  value: number
+  unit: string
+  required: boolean
+  note?: string
+}
+
+export type Tool = {
+  tool_name: string
+  quantity?: number
+  notes?: string
+}
+
+export type StepCard = {
+  id: string
+  title?: string
+  instruction: string
+  key_points?: string[]
+  why_callout?: Callout
+  timer_seconds?: number | null
+  timer_display?: string
+  critical_control_points?: ControlPoint[]
+  media_refs?: string[]
+  notes_callouts?: Callout[]
+}
+
+export type QualityChecklistGroup = {
+  group_name: string
+  checks: {
+    label: string
+    check_type?: 'visual' | 'texture' | 'pass_fail' | 'measurement'
+    control_point?: ControlPoint
+    required: boolean
+  }[]
 }
 
 // ===== RECIPE TYPES =====
@@ -31,28 +92,6 @@ export type RecipeIngredient = {
   notes?: string
 }
 
-export type CriticalControlPoint = {
-  context: string
-  value: number | null
-  unit: TemperatureUnit | null
-  target?: string
-  safety_reason?: string
-  threshold?: string | null
-  verification?: string | null
-  reason?: string | null
-}
-
-export type RecipeStep = {
-  id: string
-  title?: string
-  instruction: string
-  key_points?: string[]
-  why?: string
-  timer_seconds?: number | null
-  media_refs?: string[]
-  ccp?: CriticalControlPoint[]
-}
-
 export type CookingModeSpec = {
   mode: CookingMode
   time_minutes?: number | null
@@ -61,53 +100,38 @@ export type CookingModeSpec = {
   notes?: string
 }
 
-export type Recipe = {
+export interface Recipe extends BaseDocument {
   type: 'Recipe'
-  title: string
+  yield: { amount: number | null; unit: string | null }
+  ingredients: RecipeIngredient[]
+  steps: StepCard[]
+  
   description?: string
   category_path?: string
   station?: string
   role?: string
   frequency?: Frequency
-  yield: { amount: number | null; unit: string | null }
   portion_size?: string
   prep_time_minutes?: number | null
   cook_time_minutes?: number | null
   shelf_life?: string
-  holding_rules?: string[]
+  holding_rules?: {
+    callout_type: 'warning'
+    items: string[]
+    reheat_allowed?: boolean
+  }
   allergens?: string[]
   hazards?: string[]
-  ingredients: RecipeIngredient[]
-  tools_required?: string[]
+  tools_required?: Tool[]
   cooking_modes?: CookingModeSpec[]
-  steps: RecipeStep[]
-  plating?: {
-    instructions?: string[]
+  plating_guide?: {
+    bullets: string[]
     reference_image_ref?: string | null
   }
-  qc_spec?: {
-    visual_cues?: string[]
-    texture_cues?: string[]
-    taste_cues?: string[]
-    pass_fail_checks?: string[]
-  }
-  source_evidence: EvidenceRef[]
-  open_questions: string[]
-  confidence_score: number
+  quality_checks?: QualityChecklistGroup[]
 }
 
 // ===== SOP TYPES =====
-
-export type SOPStep = {
-  id: string
-  title: string
-  instruction: string
-  key_points?: string[]
-  why?: string | null
-  timer_seconds?: number | null
-  media_refs?: string[]
-  ccp?: CriticalControlPoint[]
-}
 
 export type TroubleshootingItem = {
   symptom: string
@@ -116,10 +140,24 @@ export type TroubleshootingItem = {
   escalate_when?: string | null
 }
 
-export type SOP = {
+export interface SOP extends BaseDocument {
   type: 'SOP'
-  title: string
+  steps: StepCard[]
+  
   description?: string
+  purpose?: string | null
+  when_to_use?: string | null
+  tools_required?: Tool[]
+  safety_warnings?: Callout[]
+  troubleshooting?: TroubleshootingItem[]
+  common_mistakes?: string[]
+  escalation?: {
+    conditions: string[]
+    actions: string[]
+    contact_role?: string
+  }
+  
+  // Optional extras from before
   category_path?: string
   station?: string
   role?: string
@@ -127,20 +165,9 @@ export type SOP = {
   frequency?: Frequency
   hazards?: string[]
   allergens?: string[]
-  purpose?: string | null
-  when_to_use?: string | null
   scope?: string | null
   prerequisites?: string[]
-  tools_required?: string[]
-  safety_warnings?: string[]
-  steps: SOPStep[]
   quality_checks?: string[]
-  common_mistakes?: string[]
-  escalation?: string | null
-  troubleshooting?: TroubleshootingItem[]
-  source_evidence: EvidenceRef[]
-  open_questions: string[]
-  confidence_score: number
 }
 
 // ===== CHECKLIST TYPES =====
@@ -170,33 +197,31 @@ export type ChecklistItem = {
   requires_initials?: boolean
 }
 
-export type Checklist = {
+export interface Checklist extends BaseDocument {
   type: 'Checklist'
-  title: string
+  frequency: Frequency
+  items: ChecklistItem[]
+  
   description?: string
   department?: string
   station?: string
   role?: string
   shift?: Shift
-  frequency: Frequency
-  items: ChecklistItem[]
-  escalation_rules?: string[]
-  source_evidence: EvidenceRef[]
-  open_questions: string[]
-  confidence_score: number
+  requires_signature?: boolean
+  escalation_rules?: {
+    condition: string
+    action: string
+    notify_roles: string[]
+  }[]
 }
 
 // ===== EQUIPMENT TYPES =====
 
-export type EquipmentRisk = {
-  hazard: string
-  warning: string
-}
-
 export type QuickAction = {
-  title: string
+  action_name: string
   steps: string[]
   media_refs?: string[]
+  callouts?: Callout[]
 }
 
 export type ProgramSetting = {
@@ -205,10 +230,11 @@ export type ProgramSetting = {
 }
 
 export type EquipmentProgram = {
-  code?: string | null
   name: string
+  program_code?: string | null
   purpose?: string | null
-  button_sequence_steps: string[]
+  button_sequence_steps: string[] // keeping legacy support if needed, or prefer button_sequence
+  button_sequence?: string[] // new preferred
   settings?: ProgramSetting[]
   time_minutes?: number | null
   temperature?: { value: number | null; unit: TemperatureUnit | null }
@@ -223,40 +249,62 @@ export type ErrorCode = {
   immediate_action?: string | null
 }
 
-export type Equipment = {
+export type EquipmentRisk = {
+  hazard: string
+  warning: string
+}
+
+export interface Equipment extends BaseDocument {
   type: 'Equipment'
-  title: string
+  quick_actions: QuickAction[] // Changed from object to array
+  
   description?: string
   machine_name?: string
   model_number?: string
   station?: string
   role?: string
   frequency?: Frequency
-  risk_warnings?: EquipmentRisk[]
-  quick_actions: {
-    startup?: QuickAction
-    shutdown?: QuickAction
-    cleaning_daily?: QuickAction
-    cleaning_weekly?: QuickAction
-    cleaning_deep?: QuickAction
-    emergency_stop?: QuickAction
-  }
+  safety_warnings?: Callout[]
+  risk_warnings?: EquipmentRisk[] // Legacy support
   programs?: EquipmentProgram[]
   error_codes?: ErrorCode[]
   troubleshooting?: TroubleshootingItem[]
   links_out?: {
     target_doc_type: 'recipe' | 'sop' | 'checklist'
-    title_hint: string
-    reason?: string
   }[]
-  source_evidence: EvidenceRef[]
-  open_questions: string[]
-  confidence_score: number
 }
 
 // ===== GUIDE TYPES =====
 
-export type ReferenceTable = {
+export type SectionBlock = {
+  block_type: 'section'
+  title: string
+  content: string
+}
+
+export type TableBlock = {
+  block_type: 'table'
+  title: string
+  columns: string[]
+  rows: Record<string, string>[]
+}
+
+export type ComparisonBlock = {
+  block_type: 'comparison_cards'
+  cards: {
+    title: string
+    kv_pairs: { key: string; value: string }[]
+  }[]
+}
+
+export type CalloutBlock = {
+  block_type: 'callout'
+  callout: Callout
+}
+
+export type GuideBlock = SectionBlock | TableBlock | ComparisonBlock | CalloutBlock
+
+export type ReferenceTable = { // Legacy support
   title: string
   headers: string[]
   rows: string[][]
@@ -298,9 +346,10 @@ export type LinkOut = {
   reason?: string
 }
 
-export type Guide = {
+export interface Guide extends BaseDocument {
   type: 'Guide'
-  title: string
+  blocks: GuideBlock[]
+  
   description?: string
   kind?: GuideKind
   topics?: string[]
@@ -310,18 +359,16 @@ export type Guide = {
   frequency?: Frequency
   audience?: string[]
   overview?: string
-  sections: {
-    title: string
-    bullets: string[]
-  }[]
+  overview_callout?: Callout
+  faq?: FAQItem[]
+  links_out?: LinkOut[]
+  
+  // Legacy fields kept optional for backward compat if needed, 
+  // though we prefer blocks[]
+  sections?: { title: string; bullets: string[] }[]
   reference_tables?: ReferenceTable[]
   scenarios?: ScenarioBlock[]
   visual_examples?: VisualExample[]
-  faq?: FAQItem[]
-  links_out?: LinkOut[]
-  source_evidence: EvidenceRef[]
-  open_questions: string[]
-  confidence_score: number
 }
 
 // ===== UNIFIED DOCUMENT TYPE =====
