@@ -111,6 +111,7 @@ export type SOPStep = {
 
 export type TroubleshootingItem = {
   symptom: string
+  error_codes?: string[]
   likely_causes?: string[]
   fix_steps: string[]
   escalate_when?: string | null

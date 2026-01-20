@@ -37,16 +37,17 @@ export function DocViewer({ document }: DocViewerProps) {
   }
 
   // Fallback for unknown document types
+  const unknownDoc = document as { type?: string }
   return (
     <Card>
       <div className="text-center py-12">
         <Info className="h-12 w-12 text-gray-300 mx-auto mb-4" />
         <h3 className="text-lg font-medium text-gray-900">Unknown Document Type</h3>
         <p className="text-gray-500 mt-2">
-          Document type &quot;{document.type}&quot; is not supported.
+          Document type &quot;{unknownDoc.type}&quot; is not supported.
         </p>
         <pre className="mt-4 p-4 bg-gray-100 rounded-lg text-left overflow-auto text-xs">
-          {JSON.stringify(document, null, 2)}
+          {JSON.stringify(unknownDoc, null, 2)}
         </pre>
       </div>
     </Card>
